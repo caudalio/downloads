@@ -16,6 +16,9 @@ jobs:
           import urllib.request, json, hashlib
           from pathlib import Path
           base = 'https://caudalio.net'
+          opener = urllib.request.build_opener()
+          opener.addheaders = [('User-Agent', 'Mozilla/5.0')]
+          urllib.request.install_opener(opener)
           manifest = json.load(urllib.request.urlopen(base + '/downloads/releases.json'))
           for key in ('linux', 'windows'):
               item = manifest[key]
