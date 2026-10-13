@@ -1,0 +1,37 @@
+name: Publish CAUDALIO downloads
+on:
+  push:
+    paths: [".github/workflows/releases.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Retrieve and verify existing downloads
+        run: |
+          mkdir -p release
+          python3 - <<'PY'
+          import urllib.request, json, hashlib
+          from pathlib import Path
+          base = 'https://caudalio.net'
+          manifest = json.load(urllib.request.urlopen(base + '/downloads/releases.json'))
+          for key in ('linux', 'windows'):
+              item = manifest[key]
+              target = Path('release') / item['filename']
+              with target.open('wb') as output:
+                  for part in item['parts']:
+                      data = urllib.request.urlopen(base + part['url'], timeout=120).read()
+                      assert len(data) == part['bytes']
+                      assert hashlib.sha256(data).hexdigest() == part['sha256']
+                      output.write(data)
+              assert target.stat().st_size == item['bytes']
+              assert hashlib.sha256(target.read_bytes()).hexdigest() == item['sha256']
+          PY
+      - name: Publish verified archives
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view v3.6 --repo caudalio/downloads >/dev/null 2>&1 || gh release create v3.6 --repo caudalio/downloads --title "CAUDALIO 3.6" --notes "Official Windows and Linux trial downloads. 14-day trial. Licence required after the trial."
+          gh release upload v3.6 release/*.zip --repo caudalio/downloads --clobber
