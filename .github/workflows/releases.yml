@@ -20,7 +20,7 @@ jobs:
           opener.addheaders = [('User-Agent', 'Mozilla/5.0')]
           urllib.request.install_opener(opener)
           manifest = json.load(urllib.request.urlopen(base + '/downloads/releases.json'))
-          for key in ('linux', 'windows'):
+          for key in ('windows_sources',):
               item = manifest[key]
               target = Path('release') / item['filename']
               with target.open('wb') as output:
@@ -36,5 +36,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v3.6 --repo caudalio/downloads >/dev/null 2>&1 || gh release create v3.6 --repo caudalio/downloads --title "CAUDALIO 3.6" --notes "Official Windows and Linux trial downloads. 14-day trial. Licence required after the trial."
-          gh release upload v3.6 release/*.zip --repo caudalio/downloads --clobber
+          gh release view v3.7 --repo caudalio/downloads >/dev/null 2>&1 || gh release create v3.7 --repo caudalio/downloads --title "CAUDALIO 3.6" --notes "Official Windows and Linux trial downloads. 14-day trial. Licence required after the trial."
+          gh release upload v3.7 release/*.zip --repo caudalio/downloads --clobber
