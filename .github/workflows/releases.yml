@@ -1,4 +1,4 @@
-name: Publish CAUDALIO downloads
+name: Publish corrected Windows trial
 on:
   push:
     paths: [".github/workflows/releases.yml"]
@@ -9,32 +9,32 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Retrieve and verify existing downloads
-        run: |
-          mkdir -p release
-          python3 - <<'PY'
-          import urllib.request, json, hashlib
-          from pathlib import Path
-          base = 'https://caudalio.net'
-          opener = urllib.request.build_opener()
-          opener.addheaders = [('User-Agent', 'Mozilla/5.0')]
-          urllib.request.install_opener(opener)
-          manifest = json.load(urllib.request.urlopen(base + '/downloads/releases.json'))
-          for key in ('windows_sources',):
-              item = manifest[key]
-              target = Path('release') / item['filename']
-              with target.open('wb') as output:
-                  for part in item['parts']:
-                      data = urllib.request.urlopen(base + part['url'], timeout=120).read()
-                      assert len(data) == part['bytes']
-                      assert hashlib.sha256(data).hexdigest() == part['sha256']
-                      output.write(data)
-              assert target.stat().st_size == item['bytes']
-              assert hashlib.sha256(target.read_bytes()).hexdigest() == item['sha256']
-          PY
-      - name: Publish verified archives
+      - name: Apply verified Windows fix
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v3.7 --repo caudalio/downloads >/dev/null 2>&1 || gh release create v3.7 --repo caudalio/downloads --title "CAUDALIO 3.6" --notes "Official Windows and Linux trial downloads. 14-day trial. Licence required after the trial."
-          gh release upload v3.7 release/*.zip --repo caudalio/downloads --clobber
+          gh release download v3.7 --repo caudalio/downloads --pattern CAUDALIO-3.7-Windows.zip --dir original
+          python3 - <<'PY'
+          from pathlib import Path
+          import urllib.request, zipfile, hashlib, shutil
+          old=Path('original/CAUDALIO-3.7-Windows.zip')
+          assert hashlib.sha256(old.read_bytes()).hexdigest()=='a7c5f696443057f84f1a622d907d742d7370093c0e51a9b0f8e00232dfc0b836'
+          request=urllib.request.Request('https://caudalio.net/downloads/windows-trial-fix.zip',headers={'User-Agent':'Mozilla/5.0'})
+          patch=Path('fix.zip');patch.write_bytes(urllib.request.urlopen(request,timeout=120).read())
+          with zipfile.ZipFile(old) as z: z.extractall('work')
+          roots=list(Path('work').iterdir());assert len(roots)==1 and roots[0].is_dir()
+          root=roots[0]
+          with zipfile.ZipFile(patch) as z: z.extractall(root)
+          assert hashlib.sha256((root/'CAUDALIO.exe').read_bytes()).hexdigest()=='2556be4a607087a7160713a2bc7886155843920fc374fc03eb6c8f648783bf34'
+          Path('release').mkdir()
+          target=Path('release/CAUDALIO-3.7-Windows.zip')
+          with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as z:
+              for file in sorted(root.rglob('*')):
+                  if file.is_file(): z.write(file,file.relative_to(root.parent))
+          with zipfile.ZipFile(target) as z: assert z.testzip() is None
+          print('Verified corrected executable and complete ZIP:',hashlib.sha256(target.read_bytes()).hexdigest())
+          PY
+      - name: Replace Windows archive only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload v3.7 release/CAUDALIO-3.7-Windows.zip --repo caudalio/downloads --clobber
