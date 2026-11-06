@@ -48,11 +48,13 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
-          $dest="$env:RUNNER_TEMP/CAUDALIO"
+          $dest=Join-Path $env:RUNNER_TEMP 'CAUDALIO'
           New-Item -ItemType Directory -Force "$env:APPDATA/CAUDALIO" | Out-Null
           'preserve-existing-user-data' | Set-Content "$env:APPDATA/CAUDALIO/native-check-sentinel.txt"
           $p=Start-Process "$env:RUNNER_TEMP/CAUDALIO-Setup.exe" -ArgumentList "/S /D=$dest" -Wait -PassThru
           if($p.ExitCode -ne 0){throw "Installer exit $($p.ExitCode)"}
+          Get-ItemProperty 'HKCU:\Software\CAUDALIO43' -ErrorAction SilentlyContinue | Format-List | Out-File "$env:RUNNER_TEMP/install-location.txt"
+          Get-ChildItem $dest -Recurse -ErrorAction SilentlyContinue | Select-Object FullName,Length | Out-File "$env:RUNNER_TEMP/install-files.txt"
           if(!(Test-Path "$dest/CAUDALIO.exe")){throw 'Installed application missing'}
           $p=Start-Process "$dest/CAUDALIO.exe" -ArgumentList '--version' -Wait -PassThru -RedirectStandardOutput "$env:RUNNER_TEMP/version.txt" -RedirectStandardError "$env:RUNNER_TEMP/startup.txt"
           if($p.ExitCode -ne 0){throw "Clean runtime failed: $($p.ExitCode)"}
@@ -67,7 +69,7 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          $dest="$env:RUNNER_TEMP/CAUDALIO"
+          $dest=Join-Path $env:RUNNER_TEMP 'CAUDALIO'
           if(Test-Path "$dest/Uninstall.exe"){
             $p=Start-Process "$dest/Uninstall.exe" -ArgumentList '/S' -Wait -PassThru
             if($p.ExitCode -ne 0){throw 'Uninstall failed'}
@@ -82,5 +84,7 @@ jobs:
             ${{ runner.temp }}/CAUDALIO/validation
             ${{ runner.temp }}/version.txt
             ${{ runner.temp }}/startup.txt
+            ${{ runner.temp }}/install-location.txt
+            ${{ runner.temp }}/install-files.txt
             ${{ runner.temp }}/tested-release.json
           retention-days: 14
