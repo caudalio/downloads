@@ -1,0 +1,18 @@
+{
+  "assets": [
+    {
+      "filename": "CAUDALIO-4.4-Linux-amd64.deb",
+      "artifact_id": 13540147709,
+      "validation_job": 128147808624,
+      "bytes": 65629616,
+      "sha256": "83e1d5bc6def63b8b60c51f2e1ca4c7a03ed614b5af4c267d51a850d1de8f501"
+    },
+    {
+      "filename": "CAUDALIO-4.4-Windows-x64-Setup.exe",
+      "artifact_id": 13539292828,
+      "validation_job": 128143372281,
+      "bytes": 100998323,
+      "sha256": "0efdfac2f01f8ebbc9f73014844b97defcea45bf6aa0e40a1406a28fd8a9411b"
+    }
+  ]
+}
