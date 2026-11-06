@@ -61,6 +61,11 @@ jobs:
           if((Get-Content "$env:RUNNER_TEMP/version.txt" -Raw) -notmatch '4.3.0'){throw 'Wrong application version'}
           tar -xf "$env:RUNNER_TEMP/checks.tar.xz" -C $dest
           if($LASTEXITCODE -ne 0){throw 'Validation archive extraction failed'}
+          $qtArchive=Join-Path $env:RUNNER_TEMP 'qtbase.7z'
+          Invoke-WebRequest 'https://download.qt.io/online/qtsdkrepository/windows_x86/desktop/qt6_683/qt6_683/qt.qt6.683.win64_mingw/6.8.3-0-202503201308qtbase-Windows-Windows_10_22H2-Mingw-Windows-Windows_10_22H2-X86_64.7z' -OutFile $qtArchive
+          & 7z e $qtArchive "-o$dest" '*Qt6Test.dll' -r -y
+          if($LASTEXITCODE -ne 0){throw 'Qt test dependency extraction failed'}
+          if((Get-FileHash "$dest/Qt6Test.dll" -Algorithm SHA256).Hash.ToLower() -ne 'bb51aa62555f9dabb99d60b4068ad6de5c4c135e89567dba77cf95bf54554dac'){throw 'Qt test dependency checksum mismatch'}
       - name: Run native GUI, playback, project and card checks
         shell: pwsh
         run: |
