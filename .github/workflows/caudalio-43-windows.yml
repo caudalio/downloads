@@ -5,6 +5,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: caudalio-43-native-validation
+  cancel-in-progress: true
 jobs:
   validate:
     runs-on: windows-latest
@@ -39,7 +42,7 @@ jobs:
             if((Get-FileHash $destination -Algorithm SHA256).Hash.ToLower() -ne $record.sha256){throw 'Installer integrity mismatch'}
           }
           Get-Package $release.windows "$env:RUNNER_TEMP/CAUDALIO-Setup.exe"
-          Get-Package $checks "$env:RUNNER_TEMP/checks.zip"
+          Get-Package $checks "$env:RUNNER_TEMP/checks.tar.xz"
           $release | ConvertTo-Json -Depth 8 | Set-Content "$env:RUNNER_TEMP/tested-release.json"
       - name: Install and check the clean runtime
         shell: pwsh
@@ -54,7 +57,8 @@ jobs:
           $p=Start-Process "$dest/CAUDALIO.exe" -ArgumentList '--version' -Wait -PassThru -RedirectStandardOutput "$env:RUNNER_TEMP/version.txt" -RedirectStandardError "$env:RUNNER_TEMP/startup.txt"
           if($p.ExitCode -ne 0){throw "Clean runtime failed: $($p.ExitCode)"}
           if((Get-Content "$env:RUNNER_TEMP/version.txt" -Raw) -notmatch '4.3.0'){throw 'Wrong application version'}
-          Expand-Archive "$env:RUNNER_TEMP/checks.zip" -DestinationPath $dest -Force
+          tar -xf "$env:RUNNER_TEMP/checks.tar.xz" -C $dest
+          if($LASTEXITCODE -ne 0){throw 'Validation archive extraction failed'}
       - name: Run native GUI, playback, project and card checks
         shell: pwsh
         run: |
