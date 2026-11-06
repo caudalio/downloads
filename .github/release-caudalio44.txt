@@ -1,0 +1,10 @@
+CAUDALIO 4.4 adds up to eight independent canvases in a single show. Each canvas has its own board, timeline, resolution and output routing. Global Play, Pause, GO, Stop and video Blackout controls operate across the show.
+
+Saving, recovery and media collection include every canvas. Existing projects open as one canvas. Keep backups: shows saved in 4.4 require CAUDALIO 4.4 or later. The illustrated guide now includes a multi-canvas chapter in English, French and Spanish.
+
+Downloads: Linux amd64 (Ubuntu 24.04 / Mint 22) and Windows x64. The macOS installer is still undergoing final preparation and is not included in this release.
+
+The native release checks cover the core engine, interface, timelines, monitoring, chroma key and multi-canvas behavior, plus installation and media decoding. Physical projectors, capture devices, external audio, NDI and long-duration show loads require rehearsal on the target hardware. Global transport is not frame-locked synchronization.
+
+14-day trial. Existing licence and project data are preserved by the upgrade.
+https://caudalio.net/fr/download/
