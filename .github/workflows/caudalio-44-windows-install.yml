@@ -1,0 +1,31 @@
+name: CAUDALIO 4.4 final Windows installation check
+on:
+  push:
+    paths: ['.github/workflows/caudalio-44-windows-install.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  install:
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          artifact-ids: '13537568825'
+          run-id: '42286801276'
+          github-token: ${{ github.token }}
+          path: incoming
+          merge-multiple: true
+      - name: Verify installation, upgrade and uninstall
+        run: python .github/caudalio44-windows-install-check.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: caudalio-44-final-windows
+          path: release/*
+          retention-days: 14
