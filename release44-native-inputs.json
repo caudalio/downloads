@@ -1,0 +1,159 @@
+{
+  "baseline": {
+    "linux": {
+      "filename": "CAUDALIO-4.3-Linux-amd64-Standard.deb",
+      "label": "CAUDALIO 4.3 \u00b7 Linux",
+      "bytes": 65434500,
+      "sha256": "1aca24a8c987ca075fe20df39f0d7792eb067e83b22af00070c33e98734c8fb4",
+      "mime": "application/vnd.debian.binary-package",
+      "parts": [
+        {
+          "url": "/downloads/parts/4.3/linux-final/000.bin",
+          "bytes": 8388608,
+          "sha256": "f7a902bccc9ed72ae88f4802cc471543e0d6b46a4bf0e559ac4382834b0a7370"
+        },
+        {
+          "url": "/downloads/parts/4.3/linux-final/001.bin",
+          "bytes": 8388608,
+          "sha256": "22582ea7877ba81ac5b54f4844bbdd3bd51d755dc3e74a2267e8eee2ac14c4f0"
+        },
+        {
+          "url": "/downloads/parts/4.3/linux-final/002.bin",
+          "bytes": 8388608,
+          "sha256": "a43c41ce7f1059145b1c104a3faa7809d64e9ee8d9bed034602e0de689c77eeb"
+        },
+        {
+          "url": "/downloads/parts/4.3/linux-final/003.bin",
+          "bytes": 8388608,
+          "sha256": "29e1e1af47dc5f6beed108ff4d87d3b528e7c97eb163a2bb1bca6ab8034c6168"
+        },
+        {
+          "url": "/downloads/parts/4.3/linux-final/004.bin",
+          "bytes": 8388608,
+          "sha256": "86955aabf9b9ffd8fc688fe913a70a50c099f3f7abd659ce56f3888de3e76ab6"
+        },
+        {
+          "url": "/downloads/parts/4.3/linux-final/005.bin",
+          "bytes": 8388608,
+          "sha256": "0a970e39dca00aa7db3b9b5539c66642db5e0a8d830ca2b17277d42b4f77044e"
+        },
+        {
+          "url": "/downloads/parts/4.3/linux-final/006.bin",
+          "bytes": 8388608,
+          "sha256": "1206aa6866c3423b4badff535da9381e90e69f96f5b23c602e9b9927033d5b14"
+        },
+        {
+          "url": "/downloads/parts/4.3/linux-final/007.bin",
+          "bytes": 6714244,
+          "sha256": "378ebeab166db20e1a019c786ac653c0ab6edb61e0df2ab282cebd20994778b2"
+        }
+      ]
+    },
+    "windows": {
+      "filename": "CAUDALIO-4.3-Windows-x64-Web-Setup.exe",
+      "label": "CAUDALIO 4.3 \u00b7 Windows",
+      "bytes": 100869654,
+      "sha256": "133368d538a433e94a1c6713e10acbc025b86d3387db2c9f13827bfc50da25f9",
+      "mime": "application/vnd.microsoft.portable-executable",
+      "parts": [
+        {
+          "url": "/downloads/parts/4.3/windows-final/000.bin",
+          "bytes": 8388608,
+          "sha256": "043fbd194c458743a8da9f222cf72ebe12750416940397d0eda9c31a7f7d290e"
+        },
+        {
+          "url": "/downloads/parts/4.3/windows-final/001.bin",
+          "bytes": 8388608,
+          "sha256": "3fabadc3b95758c2bd1016be6dd506d17a7479cd08b90511610519e8d652f8f7"
+        },
+        {
+          "url": "/downloads/parts/4.3/windows-final/002.bin",
+          "bytes": 8388608,
+          "sha256": "41a394e0e982fc8b7be0fc3faffb5190f14c183fada28c2efc534df746d6308c"
+        },
+        {
+          "url": "/downloads/parts/4.3/windows-final/003.bin",
+          "bytes": 8388608,
+          "sha256": "821cf190c17f41abd1d786af83333bd58f15fc77e59a9610e4c533db46a00cd4"
+        },
+        {
+          "url": "/downloads/parts/4.3/windows-final/004.bin",
+          "bytes": 8388608,
+          "sha256": "206aab52e96ffa5044188fe50abc31d35d11a45a64c43f1b718beb8f21623f5e"
+        },
+        {
+          "url": "/downloads/parts/4.3/windows-final/005.bin",
+          "bytes": 8388608,
+          "sha256": "a9f25a09ee1486d3200166664031eb62cbd6546f4a86314819998f5d3fa5216e"
+        },
+        {
+          "url": "/downloads/parts/4.3/windows-final/006.bin",
+          "bytes": 8388608,
+          "sha256": "8d511a7402e85b561fcaf925f894c76a8997c3581c9506a39a48c5c68ed133bd"
+        },
+        {
+          "url": "/downloads/parts/4.3/windows-final/007.bin",
+          "bytes": 8388608,
+          "sha256": "9144d27119d219ed78fa52b22cd317823b0e208a19c8da750e928b00bd610331"
+        },
+        {
+          "url": "/downloads/parts/4.3/windows-final/008.bin",
+          "bytes": 8388608,
+          "sha256": "45a3ec90c770fbf9275c80eaf56012c624ced64788ebcd7e95cc3dd42ebd4286"
+        },
+        {
+          "url": "/downloads/parts/4.3/windows-final/009.bin",
+          "bytes": 8388608,
+          "sha256": "e86fd85a040306671d98ed6e63472ef668c1f9c491fb607c4e8101c63fc7b94c"
+        },
+        {
+          "url": "/downloads/parts/4.3/windows-final/010.bin",
+          "bytes": 8388608,
+          "sha256": "960e1976c1ac57cda1e3b35594f201ac502b65df0d880f0f531c63ea572a9523"
+        },
+        {
+          "url": "/downloads/parts/4.3/windows-final/011.bin",
+          "bytes": 8388608,
+          "sha256": "73eee54cc5b2091cadc6150e3f98ef59ccf8c06e70999f20a1ab9c404c1a9ad0"
+        },
+        {
+          "url": "/downloads/parts/4.3/windows-final/012.bin",
+          "bytes": 206358,
+          "sha256": "a3aca5856506639790bb75e934f44c602a2639687d6a98d678f4026f5a40bd5c"
+        }
+      ]
+    }
+  },
+  "patch": {
+    "filename": "native-patch44.tar.xz",
+    "bytes": 35423304,
+    "sha256": "f7eeb51812bfada6c0035ae9ee6a71a82be541208da2136295d5b9bbbf3f04b1",
+    "parts": [
+      {
+        "url": "/downloads/validation/4.4/000.bin",
+        "bytes": 8388608,
+        "sha256": "9fb10d9918780a81008c7d813e1ce9d8e356e5783a7f3c23b8b35389ff74d227"
+      },
+      {
+        "url": "/downloads/validation/4.4/001.bin",
+        "bytes": 8388608,
+        "sha256": "b79d93c0f685e3076b55315d59a46897ed2729face7f8c228a5cc47be320fa0f"
+      },
+      {
+        "url": "/downloads/validation/4.4/002.bin",
+        "bytes": 8388608,
+        "sha256": "9081ce0f9e1b0433319df0f3cd7cfda0c266bb879602c8e89474b65278c6f748"
+      },
+      {
+        "url": "/downloads/validation/4.4/003.bin",
+        "bytes": 8388608,
+        "sha256": "34a479252950d1f17e6abe543e6183817f1092c033ca5322a2904a30b0156061"
+      },
+      {
+        "url": "/downloads/validation/4.4/004.bin",
+        "bytes": 1868872,
+        "sha256": "b511a85e845f951fdcdf9ffc6d151241fd57a91859e6e8ce79a8fa505c55c0cc"
+      }
+    ]
+  }
+}
