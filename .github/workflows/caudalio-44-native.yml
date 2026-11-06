@@ -1,7 +1,7 @@
 name: CAUDALIO 4.4 native Linux and Windows validation
 on:
   push:
-    paths: ['.github/workflows/caudalio-44-native.yml']
+    paths: ['.github/workflows/caudalio-44-native.yml', '.github/caudalio44-native-validation.py']
   workflow_dispatch:
 permissions:
   contents: read
