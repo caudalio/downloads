@@ -1,4 +1,4 @@
-name: CAUDALIO 4.4 native macOS build
+name: CAUDALIO 4.4 native macOS build · camera permission fix
 on:
   push:
     paths: [".github/workflows/caudalio-44-macos.yml"]
