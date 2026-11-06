@@ -44,6 +44,9 @@ jobs:
           arch: clang_64
           modules: 'qtmultimedia qtimageformats qtshadertools'
           cache: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
       - name: Receive and verify encrypted source
         shell: bash
         run: |
@@ -53,14 +56,15 @@ jobs:
             sleep 15
           done
           python3 - <<'PY'
-          import json,os,pathlib,urllib.request,hashlib,base64
+          import json,os,pathlib,subprocess,hashlib,base64
           root=pathlib.Path(os.environ['RUNNER_TEMP'])
           spec=json.loads((root/'input.json').read_text())
           (root/'wrapped-key').write_bytes(base64.b64decode(spec['wrapped_key']))
           h=hashlib.sha256()
           with (root/'source.enc').open('wb') as out:
             for p in spec['parts']:
-              data=urllib.request.urlopen(p['url'],timeout=120).read()
+              subprocess.run(['curl','--fail','--location','--retry','3','--max-time','120',p['url'],'--output',str(root/'source-part')],check=True)
+              data=(root/'source-part').read_bytes()
               assert len(data)==p['bytes'] and hashlib.sha256(data).hexdigest()==p['sha256']
               out.write(data);h.update(data)
           assert h.hexdigest()==spec['sha256']
@@ -70,6 +74,12 @@ jobs:
           mkdir -p "$RUNNER_TEMP/caudalio-source"
           tar -xf "$RUNNER_TEMP/source.tar.xz" -C "$RUNNER_TEMP/caudalio-source"
           rm "$RUNNER_TEMP/source-key.pem" "$RUNNER_TEMP/source-password" "$RUNNER_TEMP/source.tar.xz"
+      - name: Restore public dependency build cache
+        id: deps
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/caudalio-source/.macos-deps
+          key: caudalio-macos-deps-v1-${{ matrix.arch }}
       - name: Compile, test and package natively
         shell: bash
         run: |
@@ -77,6 +87,12 @@ jobs:
           export QT_ROOT="$QT_ROOT_DIR"
           export MACOSX_DEPLOYMENT_TARGET=13.0
           bash "$RUNNER_TEMP/caudalio-source/tools/build-macos43-ci.sh" 2>&1 | tee "$RUNNER_TEMP/macos-build.log"
+      - name: Cache public dependency builds
+        if: always() && steps.deps.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/caudalio-source/.macos-deps
+          key: caudalio-macos-deps-v1-${{ matrix.arch }}
       - name: Upload native application and evidence
         if: always()
         uses: actions/upload-artifact@v4
