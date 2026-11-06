@@ -5,9 +5,6 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-concurrency:
-  group: caudalio-43-macos
-  cancel-in-progress: false
 jobs:
   build:
     strategy:
@@ -18,6 +15,9 @@ jobs:
             arch: arm64
           - runner: macos-15-intel
             arch: x86_64
+    concurrency:
+      group: caudalio-43-macos-${{ matrix.arch }}
+      cancel-in-progress: false
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
     env:
@@ -73,6 +73,26 @@ jobs:
           openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/source.enc" -out "$RUNNER_TEMP/source.tar.xz" -pass "file:$RUNNER_TEMP/source-password"
           mkdir -p "$RUNNER_TEMP/caudalio-source"
           tar -xf "$RUNNER_TEMP/source.tar.xz" -C "$RUNNER_TEMP/caudalio-source"
+          python3 - <<'PYOVERLAY'
+          import json,os,pathlib,subprocess,hashlib,base64
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          spec=json.loads((root/'input.json').read_text())
+          for overlay in spec.get('overlays',[]):
+              encrypted=root/'overlay.enc'
+              if 'inline' in overlay:
+                  encrypted.write_bytes(base64.b64decode(overlay['inline']))
+              else:
+                  with encrypted.open('wb') as output:
+                      for part in overlay['parts']:
+                          subprocess.run(['curl','--fail','--location','--retry','10','--retry-all-errors','--max-time','120',part['url'],'--output',str(root/'overlay-part')],check=True)
+                          data=(root/'overlay-part').read_bytes()
+                          assert len(data)==part['bytes'] and hashlib.sha256(data).hexdigest()==part['sha256']
+                          output.write(data)
+              assert hashlib.sha256(encrypted.read_bytes()).hexdigest()==overlay['sha256']
+              subprocess.run(['openssl','enc','-d','-aes-256-cbc','-pbkdf2','-iter','200000','-in',str(encrypted),'-out',str(root/'overlay.tar.xz'),'-pass','file:'+str(root/'source-password')],check=True)
+              subprocess.run(['tar','-xf',str(root/'overlay.tar.xz'),'-C',str(root/'caudalio-source')],check=True)
+              (root/'overlay.tar.xz').unlink()
+          PYOVERLAY
           rm "$RUNNER_TEMP/source-key.pem" "$RUNNER_TEMP/source-password" "$RUNNER_TEMP/source.tar.xz"
       - name: Restore public dependency build cache
         id: deps
