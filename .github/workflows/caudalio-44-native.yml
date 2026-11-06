@@ -1,0 +1,54 @@
+name: CAUDALIO 4.4 native Linux and Windows validation
+on:
+  push:
+    paths: ['.github/workflows/caudalio-44-native.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-2025
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Prepare installer compiler
+        shell: pwsh
+        run: |
+          $path='C:\Program Files (x86)\NSIS'
+          if(!(Test-Path "$path\makensis.exe")){choco install nsis --version=3.11 -y --no-progress}
+          $path | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Validate native runtime and final installer
+        run: python .github/caudalio44-native-validation.py windows
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: caudalio-44-native-windows
+          path: |
+            ${{ runner.temp }}/caudalio44/deliverables/*
+            ${{ runner.temp }}/caudalio44/production/validation/*.txt
+          retention-days: 14
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install native runtime and graphical test dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y libqt6widgets6t64 libqt6concurrent6t64 libqt6multimedia6 libqt6multimediawidgets6 libqt6network6t64 libqt6opengl6t64 libqt6openglwidgets6t64 libqt6test6 qt6-qpa-plugins libavcodec60 libavformat60 libavutil58 libswscale7 libssl3t64 ffmpeg xvfb xauth libgl1-mesa-dri
+      - name: Validate native runtime, OpenGL and final installer
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+          SOURCE_DATE_EPOCH: '1793980800'
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' python3 .github/caudalio44-native-validation.py linux
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: caudalio-44-native-linux
+          path: |
+            ${{ runner.temp }}/caudalio44/deliverables/*
+            ${{ runner.temp }}/caudalio44/tests/validation/*.txt
+          retention-days: 14
