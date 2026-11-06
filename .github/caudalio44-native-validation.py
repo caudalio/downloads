@@ -66,7 +66,7 @@ if platform=='windows':
   destination=stage/relative;destination.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(production/relative,destination)
  # Evidence and test executables are deliberately outside the shipped runtime.
  installer=output/'CAUDALIO-4.4-Windows-x64-Setup.exe'
- run([sys.executable,expanded/'packaging/make_windows_installer.py',stage,installer])
+ run([sys.executable,Path('.github/caudalio44-windows-installer.py').resolve(),stage,installer])
  clean=work/'clean-install';run([installer,'/S','/D='+str(clean)]);app=clean/'CAUDALIO.exe'
 else:app=production/'bin/caudalio'
 version=subprocess.run([str(app),'--version'],env=dict(env,QT_QPA_PLATFORM='windows' if platform=='windows' else 'offscreen'),capture_output=True,text=True,check=True)
