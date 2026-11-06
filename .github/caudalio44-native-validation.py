@@ -10,7 +10,7 @@ def download(record,destination):
   for part in record['parts']:
    for attempt in range(12):
     try:
-     with urllib.request.urlopen(base+part['url'],timeout=120) as r:data=r.read()
+     data=subprocess.check_output(['curl','--fail','--silent','--show-error','--location','--retry','3','--max-time','120',base+part['url']])
      assert len(data)==part['bytes'] and hashlib.sha256(data).hexdigest()==part['sha256']
      output.write(data);h.update(data);break
     except Exception:
