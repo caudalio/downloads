@@ -1,0 +1,55 @@
+CAUDALIO 4.4.0 — Validation, 6 November 2026
+
+Released: Linux amd64 (Ubuntu 24.04 / Mint 22) and Windows x64.
+New: up to eight independent canvases, per-canvas resolutions, boards,
+timelines and outputs; global transport and video blackout; whole-show save,
+recovery and media collection; legacy single-canvas project compatibility.
+F11 targets the main workspace correctly after switching canvas tabs.
+
+Native tests of the exact shipped application binaries:
+LINUX
+core: 65 passed, 0 failed, 1 skipped
+interface: 42 passed, 0 failed, 0 skipped
+sequences: 13 passed, 0 failed, 0 skipped
+monitoring: 9 passed, 0 failed, 0 skipped
+chroma: 20 passed, 0 failed, 0 skipped
+multicanvas: 15 passed, 0 failed, 0 skipped
+opengl: 12 passed, 0 failed, 0 skipped
+
+WINDOWS
+core: 65 passed, 0 failed, 1 skipped
+interface: 42 passed, 0 failed, 0 skipped
+sequences: 13 passed, 0 failed, 0 skipped
+monitoring: 9 passed, 0 failed, 0 skipped
+chroma: 20 passed, 0 failed, 0 skipped
+multicanvas: 15 passed, 0 failed, 0 skipped
+
+Linux: native installation, installed version 4.4.0, real GUI capture,
+FFmpeg decode/audio conversion, OpenGL via Mesa/Xvfb. GPU tests exercise
+four UHD framebuffer allocations and rendering. This is software rendering,
+not certification of four physical 4K projector outputs.
+
+Windows: native runtime tests, installer build, clean installation,
+installed executable hash comparison, installed version 4.4.0, real GUI
+capture, FFmpeg decode/audio conversion, reinstall and uninstall, user
+AppData preservation. Unsigned installer. CPU fallback was tested on the
+hosted runner; a physical Windows GPU was not available for validation.
+
+Additional local checks: six calendar tests; 60-second stress exercise with
+eight concurrent canvases, 536 tab switches, video blackout cycles and
+whole-show save/reload. The native multi-canvas suite also checks F11.
+
+macOS: installer NOT RELEASED. Preliminary Intel compilation, seven CTest
+suites, Cocoa and OpenGL tests passed before the final F11 correction.
+The bundle signing order was corrected in source after a packaging failure.
+The corrected Mac package has not completed final native validation. No Apple
+Silicon native installer or Apple notarization is claimed.
+
+Limits: no finite test suite guarantees a bug-free show. Physical projectors,
+capture devices, external audio, MIDI/OSC controllers, optional NDI runtime,
+and prolonged real-show workloads require rehearsal on the target setup.
+One optional NDI test is skipped where the separate NDI runtime is absent.
+Global transport is not frame-locked synchronization. Blackout affects video;
+use Stop to stop audio. Up to 8 canvases, 64 MP per canvas / 128 MP combined.
+Projects saved in 4.4 require version 4.4 or later; retain original backups.
+The 14-day trial and existing commercial licensing remain in place.
