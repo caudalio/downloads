@@ -1,0 +1,31 @@
+name: CAUDALIO 4.4 final Linux installer
+on:
+  push:
+    paths: ['.github/workflows/caudalio-44-linux-final.yml']
+permissions:
+  contents: read
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refresh package indexes with bounded network time
+        timeout-minutes: 3
+        run: sudo apt-get -o Acquire::Retries=1 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 update
+      - name: Install native runtime and graphics checks
+        timeout-minutes: 6
+        run: sudo apt-get -o DPkg::Lock::Timeout=60 -o Acquire::Retries=1 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y libqt6widgets6t64 libqt6concurrent6t64 libqt6multimedia6 libqt6multimediawidgets6 libqt6network6t64 libqt6opengl6t64 libqt6openglwidgets6t64 libqt6test6 qt6-qpa-plugins libavcodec60 libavformat60 libavutil58 libswscale7 libssl3t64 ffmpeg xvfb xauth libgl1-mesa-dri
+      - name: Validate and package exact final binaries
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+          SOURCE_DATE_EPOCH: '1793980800'
+        run: xvfb-run -a -s '-screen 0 1920x1080x24' python3 .github/caudalio44-native-validation.py linux
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: caudalio-44-final-linux
+          path: |
+            ${{ runner.temp }}/caudalio44/deliverables/*
+            ${{ runner.temp }}/caudalio44/tests/validation/*.txt
+          retention-days: 14
