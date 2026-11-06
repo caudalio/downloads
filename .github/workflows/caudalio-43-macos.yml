@@ -33,7 +33,7 @@ jobs:
       - name: Publish the ephemeral public transfer key
         uses: actions/upload-artifact@v4
         with:
-          name: source-key-${{ matrix.arch }}
+          name: source-key-${{ matrix.arch }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/source-public.pem
           retention-days: 1
       - uses: jurplel/install-qt-action@v4
@@ -52,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           for attempt in $(seq 1 120); do
-            if curl -fsSL "https://caudalio.net/downloads/macos-build/$GITHUB_RUN_ID/$TARGET_ARCH/input.json" -o "$RUNNER_TEMP/input.json" && test -s "$RUNNER_TEMP/input.json"; then break; fi
+            if curl -fsSL "https://raw.githubusercontent.com/$GITHUB_REPOSITORY/main/macos-build-inputs/$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT/$TARGET_ARCH/input.json?poll=$attempt" -o "$RUNNER_TEMP/input.json" && test -s "$RUNNER_TEMP/input.json"; then break; fi
             sleep 15
           done
           python3 - <<'PY'
@@ -63,7 +63,7 @@ jobs:
           h=hashlib.sha256()
           with (root/'source.enc').open('wb') as out:
             for p in spec['parts']:
-              subprocess.run(['curl','--fail','--location','--retry','3','--max-time','120',p['url'],'--output',str(root/'source-part')],check=True)
+              subprocess.run(['curl','--fail','--location','--retry','10','--retry-all-errors','--retry-delay','5','--retry-max-time','180','--max-time','120',p['url'],'--output',str(root/'source-part')],check=True)
               data=(root/'source-part').read_bytes()
               assert len(data)==p['bytes'] and hashlib.sha256(data).hexdigest()==p['sha256']
               out.write(data);h.update(data)
