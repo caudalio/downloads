@@ -1,4 +1,4 @@
-name: CAUDALIO 4.4 native macOS build · native UHD framebuffer validation
+name: CAUDALIO 4.4 native macOS build · final fullscreen and nested code signing
 on:
   push:
     paths: [".github/workflows/caudalio-44-macos.yml"]
