@@ -1,4 +1,4 @@
-name: CAUDALIO 4.4 native macOS build · camera permission fix
+name: CAUDALIO 4.4 native macOS build · native UHD framebuffer validation
 on:
   push:
     paths: [".github/workflows/caudalio-44-macos.yml"]
@@ -11,8 +11,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: macos-26
-            arch: arm64
           - runner: macos-15-intel
             arch: x86_64
     concurrency:
@@ -93,13 +91,27 @@ jobs:
               subprocess.run(['tar','-xf',str(root/'overlay.tar.xz'),'-C',str(root/'caudalio-source')],check=True)
               (root/'overlay.tar.xz').unlink()
           PYOVERLAY
-          rm "$RUNNER_TEMP/source-key.pem" "$RUNNER_TEMP/source-password" "$RUNNER_TEMP/source.tar.xz"
+          rm "$RUNNER_TEMP/source-key.pem" "$RUNNER_TEMP/source.tar.xz"
       - name: Restore public dependency build cache
         id: deps
         uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/caudalio-source/.macos-deps
           key: caudalio-macos-deps-v1-${{ matrix.arch }}
+      - name: Restore encrypted compilation checkpoint
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/caudalio-build.enc
+          key: caudalio-44-encrypted-build-v1-${{ matrix.arch }}-${{ github.run_id }}
+          restore-keys: caudalio-44-encrypted-build-v1-${{ matrix.arch }}-
+      - name: Open private compilation checkpoint
+        shell: bash
+        run: |
+          if test -s "$RUNNER_TEMP/caudalio-build.enc"; then
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/caudalio-build.enc" -out "$RUNNER_TEMP/build.tar.xz" -pass "file:$RUNNER_TEMP/source-password"
+            tar -xf "$RUNNER_TEMP/build.tar.xz" -C "$RUNNER_TEMP/caudalio-source"
+            rm "$RUNNER_TEMP/build.tar.xz"
+          fi
       - name: Compile, test and package natively
         shell: bash
         run: |
@@ -113,6 +125,21 @@ jobs:
         with:
           path: ${{ runner.temp }}/caudalio-source/.macos-deps
           key: caudalio-macos-deps-v1-${{ matrix.arch }}
+      - name: Encrypt compilation checkpoint
+        if: always()
+        shell: bash
+        run: |
+          if test -d "$RUNNER_TEMP/caudalio-source/build-macos" && test -s "$RUNNER_TEMP/source-password"; then
+            tar -cJf "$RUNNER_TEMP/build.tar.xz" -C "$RUNNER_TEMP/caudalio-source" build-macos
+            openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/build.tar.xz" -out "$RUNNER_TEMP/caudalio-build.enc" -pass "file:$RUNNER_TEMP/source-password"
+            rm "$RUNNER_TEMP/build.tar.xz" "$RUNNER_TEMP/source-password"
+          fi
+      - name: Save encrypted compilation checkpoint
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/caudalio-build.enc
+          key: caudalio-44-encrypted-build-v1-${{ matrix.arch }}-${{ github.run_id }}
       - name: Upload native application and evidence
         if: always()
         uses: actions/upload-artifact@v4
