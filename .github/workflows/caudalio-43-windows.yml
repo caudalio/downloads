@@ -23,7 +23,7 @@ jobs:
             try {
               $release=Invoke-RestMethod "$base/downloads/releases.json?nativecheck=43"
               $checks=Invoke-RestMethod "$base/downloads/windows-validation.json?nativecheck=43"
-              if($release.windows.filename -eq 'CAUDALIO-4.3-Windows-x64-Setup.exe'){$ready=$true;break}
+              if($release.windows.filename -eq 'CAUDALIO-4.3-Windows-x64-Web-Setup.exe'){$ready=$true;break}
             } catch {}
             Start-Sleep -Seconds 15
           }
