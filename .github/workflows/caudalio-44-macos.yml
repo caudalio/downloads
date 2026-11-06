@@ -1,0 +1,131 @@
+name: CAUDALIO 4.4 native macOS build
+on:
+  push:
+    paths: [".github/workflows/caudalio-44-macos.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-26
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    concurrency:
+      group: caudalio-44-macos-${{ matrix.arch }}
+      cancel-in-progress: false
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    env:
+      TARGET_ARCH: ${{ matrix.arch }}
+    steps:
+      - name: Prepare a private source transfer
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:3072 -out "$RUNNER_TEMP/source-key.pem" 2>/dev/null
+          openssl pkey -in "$RUNNER_TEMP/source-key.pem" -pubout -out "$RUNNER_TEMP/source-public.pem"
+      - name: Publish the ephemeral public transfer key
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-key-${{ matrix.arch }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/source-public.pem
+          retention-days: 1
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          host: mac
+          target: desktop
+          arch: clang_64
+          modules: 'qtmultimedia qtimageformats qtshadertools'
+          cache: true
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Receive and verify encrypted source
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 120); do
+            if curl -fsSL "https://raw.githubusercontent.com/$GITHUB_REPOSITORY/main/macos-build-inputs/$GITHUB_RUN_ID/$GITHUB_RUN_ATTEMPT/$TARGET_ARCH/input.json?poll=$attempt" -o "$RUNNER_TEMP/input.json" && test -s "$RUNNER_TEMP/input.json"; then break; fi
+            sleep 15
+          done
+          python3 - <<'PY'
+          import json,os,pathlib,subprocess,hashlib,base64
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          spec=json.loads((root/'input.json').read_text())
+          (root/'wrapped-key').write_bytes(base64.b64decode(spec['wrapped_key']))
+          h=hashlib.sha256()
+          with (root/'source.enc').open('wb') as out:
+            for p in spec['parts']:
+              subprocess.run(['curl','--fail','--location','--retry','10','--retry-all-errors','--retry-delay','5','--retry-max-time','180','--max-time','120',p['url'],'--output',str(root/'source-part')],check=True)
+              data=(root/'source-part').read_bytes()
+              assert len(data)==p['bytes'] and hashlib.sha256(data).hexdigest()==p['sha256']
+              out.write(data);h.update(data)
+          assert h.hexdigest()==spec['sha256']
+          PY
+          openssl pkeyutl -decrypt -inkey "$RUNNER_TEMP/source-key.pem" -in "$RUNNER_TEMP/wrapped-key" -out "$RUNNER_TEMP/source-password" -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in "$RUNNER_TEMP/source.enc" -out "$RUNNER_TEMP/source.tar.xz" -pass "file:$RUNNER_TEMP/source-password"
+          mkdir -p "$RUNNER_TEMP/caudalio-source"
+          tar -xf "$RUNNER_TEMP/source.tar.xz" -C "$RUNNER_TEMP/caudalio-source"
+          python3 - <<'PYOVERLAY'
+          import json,os,pathlib,subprocess,hashlib,base64
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          spec=json.loads((root/'input.json').read_text())
+          for overlay in spec.get('overlays',[]):
+              encrypted=root/'overlay.enc'
+              if 'inline' in overlay:
+                  encrypted.write_bytes(base64.b64decode(overlay['inline']))
+              else:
+                  with encrypted.open('wb') as output:
+                      for part in overlay['parts']:
+                          subprocess.run(['curl','--fail','--location','--retry','10','--retry-all-errors','--max-time','120',part['url'],'--output',str(root/'overlay-part')],check=True)
+                          data=(root/'overlay-part').read_bytes()
+                          assert len(data)==part['bytes'] and hashlib.sha256(data).hexdigest()==part['sha256']
+                          output.write(data)
+              assert hashlib.sha256(encrypted.read_bytes()).hexdigest()==overlay['sha256']
+              subprocess.run(['openssl','enc','-d','-aes-256-cbc','-pbkdf2','-iter','200000','-in',str(encrypted),'-out',str(root/'overlay.tar.xz'),'-pass','file:'+str(root/'source-password')],check=True)
+              subprocess.run(['tar','-xf',str(root/'overlay.tar.xz'),'-C',str(root/'caudalio-source')],check=True)
+              (root/'overlay.tar.xz').unlink()
+          PYOVERLAY
+          rm "$RUNNER_TEMP/source-key.pem" "$RUNNER_TEMP/source-password" "$RUNNER_TEMP/source.tar.xz"
+      - name: Restore public dependency build cache
+        id: deps
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/caudalio-source/.macos-deps
+          key: caudalio-macos-deps-v1-${{ matrix.arch }}
+      - name: Compile, test and package natively
+        shell: bash
+        run: |
+          set -euo pipefail
+          export QT_ROOT="$QT_ROOT_DIR"
+          export MACOSX_DEPLOYMENT_TARGET=13.0
+          bash "$RUNNER_TEMP/caudalio-source/tools/build-macos44-ci.sh" 2>&1 | tee "$RUNNER_TEMP/macos-build.log"
+      - name: Cache public dependency builds
+        if: always() && steps.deps.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/caudalio-source/.macos-deps
+          key: caudalio-macos-deps-v1-${{ matrix.arch }}
+      - name: Upload native application and evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: caudalio-44-macos-${{ matrix.arch }}
+          path: |
+            ${{ runner.temp }}/caudalio-source/dist-macos/*.dmg
+            ${{ runner.temp }}/caudalio-source/dist-macos/*.zip
+            ${{ runner.temp }}/caudalio-source/dist-macos/*.txt
+            ${{ runner.temp }}/caudalio-source/dist-macos/*.json
+            ${{ runner.temp }}/caudalio-source/dist-macos/*.xml
+            ${{ runner.temp }}/caudalio-source/dist-macos/*.png
+            ${{ runner.temp }}/caudalio-source/build-macos/Testing/Temporary/LastTest.log
+            ${{ runner.temp }}/macos-build.log
+          retention-days: 14
+
