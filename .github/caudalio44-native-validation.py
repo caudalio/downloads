@@ -48,7 +48,7 @@ shutil.copytree(expanded/'validation',testroot/'validation',dirs_exist_ok=True)
 if platform!='windows':
  for name in ('media','examples'):shutil.copytree(production/name,testroot/name,dirs_exist_ok=True)
 evidence=testroot/'validation';captures=evidence/'captures';captures.mkdir(exist_ok=True)
-env=dict(os.environ,QT_QPA_PLATFORM='windows' if platform=='windows' else 'xcb',CAUDALIO_RENDERER='cpu',QT_MEDIA_BACKEND='ffmpeg',CAUDALIO_HW_DECODE='off',CAUDALIO_TEST_SOURCE=str(testroot),SCENIQUE_TEST_VIDEO=str(testroot/'tests/media/red.mp4'),CAUDALIO_SEQUENCE_TEST_VIDEO=str(testroot/'tests/media/red-green.mp4'),CAUDALIO_TEST_FIXTURES=str(testroot/'tests/media'),CAUDALIO_PRORES_VIDEO=str(testroot/'tests/media/prores.mov'),CAUDALIO_CHROMA_FIXTURES=str(testroot/'examples/chroma-key-3.8'),CAUDALIO_CAPTURE_DIR=str(captures))
+env=dict(os.environ,QT_FORCE_STDERR_LOGGING='1',QT_QPA_PLATFORM='windows' if platform=='windows' else 'xcb',CAUDALIO_RENDERER='cpu',QT_MEDIA_BACKEND='ffmpeg',CAUDALIO_HW_DECODE='off',CAUDALIO_TEST_SOURCE=str(testroot),SCENIQUE_TEST_VIDEO=str(testroot/'tests/media/red.mp4'),CAUDALIO_SEQUENCE_TEST_VIDEO=str(testroot/'tests/media/red-green.mp4'),CAUDALIO_TEST_FIXTURES=str(testroot/'tests/media'),CAUDALIO_PRORES_VIDEO=str(testroot/'tests/media/prores.mov'),CAUDALIO_CHROMA_FIXTURES=str(testroot/'examples/chroma-key-3.8'),CAUDALIO_CAPTURE_DIR=str(captures))
 failures=[];checks=json.loads((evidence/'test-commands.json').read_text())
 if platform!='windows':checks.append({'name':'opengl','exe':'caudalio_gpu_tests.exe','args':[]})
 for test in checks:
@@ -68,6 +68,7 @@ if platform=='windows':
  installer=output/'CAUDALIO-4.4-Windows-x64-Setup.exe'
  run([sys.executable,Path('.github/caudalio44-windows-installer.py').resolve(),stage,installer])
  clean=work/'clean-install';run([installer,'/S','/D='+str(clean)]);app=clean/'CAUDALIO.exe'
+ assert hashlib.sha256(app.read_bytes()).digest()==hashlib.sha256((expanded/'binaries/caudalio/windows/caudalio.exe').read_bytes()).digest()
 else:app=production/'bin/caudalio'
 version=subprocess.run([str(app),'--version'],env=dict(env,QT_QPA_PLATFORM='windows' if platform=='windows' else 'offscreen'),capture_output=True,text=True,check=True)
 assert '4.4.0' in version.stdout+version.stderr
@@ -76,10 +77,16 @@ run([app,'--screenshot',captures/'installed-workspace.png'],env=env,timeout=40)
 assert (captures/'installed-workspace.png').is_file()
 if platform=='windows':
  sentinel=Path(os.environ['APPDATA'])/'CAUDALIO/native-check-sentinel44.txt';sentinel.parent.mkdir(exist_ok=True);sentinel.write_text('preserve-user-data')
- run([clean/'Uninstall.exe','/S']);time.sleep(2);assert sentinel.read_text()=='preserve-user-data'
+ run([installer,'/S','/D='+str(clean)]);assert sentinel.read_text()=='preserve-user-data'
+ assert hashlib.sha256(app.read_bytes()).digest()==hashlib.sha256((expanded/'binaries/caudalio/windows/caudalio.exe').read_bytes()).digest()
+ run([clean/'Uninstall.exe','/S'])
+ for _ in range(40):
+  if not app.exists():break
+  time.sleep(.25)
+ assert not app.exists();assert sentinel.read_text()=='preserve-user-data'
 for p in output.iterdir():
  if p.suffix in ('.exe','.deb'):(output/(p.name+'.sha256.txt')).write_text(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n')
-(evidence/'VALIDATION-4.4.txt').write_text('CAUDALIO 4.4 native '+platform+' validation passed.\nCore, interface, timeline, monitoring, chroma and multi-canvas checks passed.\nInstalled version, real GUI capture and media decoding/conversion checked.\n'+('OpenGL checked using Mesa/Xvfb.\n' if platform!='windows' else 'Physical GPU outputs not certified by this CPU-runner validation.\n')+'Physical projectors, external audio, cameras, NDI and prolonged show workloads require rehearsal on the actual hardware.\n')
+(evidence/'VALIDATION-4.4.txt').write_text('CAUDALIO 4.4 native '+platform+' validation passed.\nCore, interface, timeline, monitoring, chroma and multi-canvas checks passed.\nInstalled version, real GUI capture and media decoding/conversion checked.\n'+('OpenGL checked using Mesa/Xvfb.\n' if platform!='windows' else 'Installation, reinstall, uninstall and preservation of user AppData checked. Physical GPU outputs not certified by this CPU-runner validation.\n')+'Physical projectors, external audio, cameras, NDI and prolonged show workloads require rehearsal on the actual hardware.\n')
 shutil.copy2(evidence/'VALIDATION-4.4.txt',output/'VALIDATION-4.4.txt')
 shutil.make_archive(str(output/'CAUDALIO-4.4-Native-Validation'),'zip',evidence)
 print('Native installer and evidence ready:',output,flush=True)
