@@ -1,0 +1,21 @@
+{
+  "sha256": "daf99a1408f8788e700266261c2454d406457e0651f4fd162c4133859f914b74",
+  "parts": [
+    {
+      "url": "https://caudalio.net/downloads/macos-build/42244932608/source-000.bin",
+      "bytes": 8388608,
+      "sha256": "10ca0bc778541d94bfc7012c82f5bd1d9bc706b57acc4bffe39c8d1d64a4acc0"
+    },
+    {
+      "url": "https://caudalio.net/downloads/macos-build/42244932608/source-001.bin",
+      "bytes": 8388608,
+      "sha256": "6a83a877fed0cf4dd76a9f7fb3a89808732e4a7174bbbc2d2409d848f45bca6e"
+    },
+    {
+      "url": "https://caudalio.net/downloads/macos-build/42244932608/source-002.bin",
+      "bytes": 3511136,
+      "sha256": "25bb14b3cba61b53617b7e587a26ba6c3c9165eaedba62e0027f9a7084024a87"
+    }
+  ],
+  "wrapped_key": "U5lAqdizSXFHzUdvw0hAJbbDvbwatEaO1wbvjQuBAFXfDQKz5IrVpIk+EocgcScAD33u0wNNWYoFb+VhessBR9I0ik416O8C3RYu5/SPYOEERX9BAIbaEMm0+864zcNujpn/srOd2ls2mK7YcbGkZSq+7nsn16CCikVuKrOG/PY7R02CONMI3hjkCr4r/gXAM1Jv1ha3yaG3267jFxBKOuj66ITJUCQHkfVLk7sBPBlc4XKhz6/RbuozMlYzKtKrv8J6IwYeDTbvALMVEjUQZmQKQdftKB9xzeLKGLOnXGVaSCtGuN5+yucc/qbIP09QxyC2POjWBNBsbBVzOltR31p5xHrX8y0F587HH/KiNn65zqWnpWa11zOZpxXUIhe1NUoKrg7juJQqjrbO7v3T70DLprZjV2hTmqhk5++eJgGX1DNgGEBRhDG1tzeTzOZnVniLhOmg3ZFgmul2VbKTrqn4Zmg8XAY27j3KY1QOMsHGga8Fo4GJ7YRV0jBg2WAI"
+}
