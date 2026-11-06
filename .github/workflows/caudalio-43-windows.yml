@@ -1,0 +1,82 @@
+name: CAUDALIO 4.3 native Windows validation
+on:
+  push:
+    paths: [".github/workflows/caudalio-43-windows.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - name: Download the published installers and verification binaries
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $base='https://caudalio.net'
+          $ready=$false
+          for($i=0;$i -lt 80;$i++){
+            try {
+              $release=Invoke-RestMethod "$base/downloads/releases.json?nativecheck=43"
+              $checks=Invoke-RestMethod "$base/downloads/windows-validation.json?nativecheck=43"
+              if($release.windows.filename -eq 'CAUDALIO-4.3-Windows-x64-Setup.exe'){$ready=$true;break}
+            } catch {}
+            Start-Sleep -Seconds 15
+          }
+          if(!$ready){throw 'Official Windows package not available yet'}
+          function Get-Package($record,$destination) {
+            $output=[IO.File]::Create($destination)
+            try {
+              foreach($part in $record.parts){
+                $tmp=Join-Path $env:RUNNER_TEMP ([guid]::NewGuid().ToString()+'.bin')
+                Invoke-WebRequest ($base+$part.url) -OutFile $tmp
+                if((Get-Item $tmp).Length -ne $part.bytes -or (Get-FileHash $tmp -Algorithm SHA256).Hash.ToLower() -ne $part.sha256){throw 'Part integrity mismatch'}
+                $input=[IO.File]::OpenRead($tmp);try{$input.CopyTo($output)}finally{$input.Dispose()}
+                Remove-Item $tmp
+              }
+            }finally{$output.Dispose()}
+            if((Get-FileHash $destination -Algorithm SHA256).Hash.ToLower() -ne $record.sha256){throw 'Installer integrity mismatch'}
+          }
+          Get-Package $release.windows "$env:RUNNER_TEMP/CAUDALIO-Setup.exe"
+          Get-Package $checks "$env:RUNNER_TEMP/checks.zip"
+          $release | ConvertTo-Json -Depth 8 | Set-Content "$env:RUNNER_TEMP/tested-release.json"
+      - name: Install and check the clean runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $dest="$env:RUNNER_TEMP/CAUDALIO"
+          New-Item -ItemType Directory -Force "$env:APPDATA/CAUDALIO" | Out-Null
+          'preserve-existing-user-data' | Set-Content "$env:APPDATA/CAUDALIO/native-check-sentinel.txt"
+          $p=Start-Process "$env:RUNNER_TEMP/CAUDALIO-Setup.exe" -ArgumentList "/S /D=$dest" -Wait -PassThru
+          if($p.ExitCode -ne 0){throw "Installer exit $($p.ExitCode)"}
+          if(!(Test-Path "$dest/CAUDALIO.exe")){throw 'Installed application missing'}
+          $p=Start-Process "$dest/CAUDALIO.exe" -ArgumentList '--version' -Wait -PassThru -RedirectStandardOutput "$env:RUNNER_TEMP/version.txt" -RedirectStandardError "$env:RUNNER_TEMP/startup.txt"
+          if($p.ExitCode -ne 0){throw "Clean runtime failed: $($p.ExitCode)"}
+          if((Get-Content "$env:RUNNER_TEMP/version.txt" -Raw) -notmatch '4.3.0'){throw 'Wrong application version'}
+          Expand-Archive "$env:RUNNER_TEMP/checks.zip" -DestinationPath $dest -Force
+      - name: Run native GUI, playback, project and card checks
+        shell: pwsh
+        run: |
+          & "$env:RUNNER_TEMP/CAUDALIO/validation/run-windows.ps1"
+      - name: Check uninstall preserves existing user data
+        if: always()
+        shell: pwsh
+        run: |
+          $dest="$env:RUNNER_TEMP/CAUDALIO"
+          if(Test-Path "$dest/Uninstall.exe"){
+            $p=Start-Process "$dest/Uninstall.exe" -ArgumentList '/S' -Wait -PassThru
+            if($p.ExitCode -ne 0){throw 'Uninstall failed'}
+          }
+          if((Get-Content "$env:APPDATA/CAUDALIO/native-check-sentinel.txt" -Raw) -notmatch 'preserve-existing-user-data'){throw 'User data not preserved'}
+      - name: Upload validation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: caudalio-43-native-windows-evidence
+          path: |
+            ${{ runner.temp }}/CAUDALIO/validation
+            ${{ runner.temp }}/version.txt
+            ${{ runner.temp }}/startup.txt
+            ${{ runner.temp }}/tested-release.json
+          retention-days: 14
