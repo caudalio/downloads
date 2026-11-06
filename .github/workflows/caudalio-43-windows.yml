@@ -23,7 +23,7 @@ jobs:
             try {
               $release=Invoke-RestMethod "$base/downloads/releases.json?nativecheck=43"
               $checks=Invoke-RestMethod "$base/downloads/windows-validation.json?nativecheck=43"
-              if($release.windows.sha256 -eq '133368d538a433e94a1c6713e10acbc025b86d3387db2c9f13827bfc50da25f9' -and $checks.sha256 -eq '5a383616be4472dc95949a455495303fefc8455172f7ba7c18875d06f83f1313'){$ready=$true;break}
+              if($release.windows.sha256 -eq '133368d538a433e94a1c6713e10acbc025b86d3387db2c9f13827bfc50da25f9' -and $checks.sha256 -eq '0a8d71a1a731758b0e5c9b218938ff96792f21586ab276544206e505a0d59b13'){$ready=$true;break}
             } catch {}
             Start-Sleep -Seconds 15
           }
