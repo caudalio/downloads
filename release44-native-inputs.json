@@ -126,33 +126,28 @@
   },
   "patch": {
     "filename": "native-patch44.tar.xz",
-    "bytes": 35423304,
-    "sha256": "f7eeb51812bfada6c0035ae9ee6a71a82be541208da2136295d5b9bbbf3f04b1",
+    "bytes": 30284616,
+    "sha256": "0cf0b7a630ba3aff1cc48ba673eee39f64410bf2191532e85bb827489d1d7f70",
     "parts": [
       {
         "url": "/downloads/validation/4.4/000.bin",
         "bytes": 8388608,
-        "sha256": "9fb10d9918780a81008c7d813e1ce9d8e356e5783a7f3c23b8b35389ff74d227"
+        "sha256": "818406eb6744b16aa6fbf34bb4ef6c4fefa6e229e5a86ff5069449879e40def6"
       },
       {
         "url": "/downloads/validation/4.4/001.bin",
         "bytes": 8388608,
-        "sha256": "b79d93c0f685e3076b55315d59a46897ed2729face7f8c228a5cc47be320fa0f"
+        "sha256": "b9cda05a242b524afdff8ebb8fa2f79961eba35d698d61ab4a7313077034a49f"
       },
       {
         "url": "/downloads/validation/4.4/002.bin",
         "bytes": 8388608,
-        "sha256": "9081ce0f9e1b0433319df0f3cd7cfda0c266bb879602c8e89474b65278c6f748"
+        "sha256": "a147ff3260322bbe1984d2fba282a2bccca5d031c60b53e7f955fe3a24757d34"
       },
       {
         "url": "/downloads/validation/4.4/003.bin",
-        "bytes": 8388608,
-        "sha256": "34a479252950d1f17e6abe543e6183817f1092c033ca5322a2904a30b0156061"
-      },
-      {
-        "url": "/downloads/validation/4.4/004.bin",
-        "bytes": 1868872,
-        "sha256": "b511a85e845f951fdcdf9ffc6d151241fd57a91859e6e8ce79a8fa505c55c0cc"
+        "bytes": 5118792,
+        "sha256": "b50fd0524e8d3a6c8b184aa0650158ca55d1a626c41054809fb2b812c2ceefe5"
       }
     ]
   }
