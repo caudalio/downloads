@@ -1,4 +1,4 @@
-name: CAUDALIO 4.4 native macOS build · approved final distribution build
+name: CAUDALIO 4.4 native macOS build · verified dependency cache and final distribution build
 on:
   push:
     paths: [".github/workflows/caudalio-44-macos.yml"]
